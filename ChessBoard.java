@@ -3,7 +3,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import javax.swing.JOptionPane;
+import javax.swing.*;
 
 public class ChessBoard extends Canvas{
     boolean isNetworkGame = false;  // 是否是网络游戏
@@ -20,6 +20,7 @@ public class ChessBoard extends Canvas{
     private boolean gameOver = false; // 游戏是否结束
     private boolean eated = false;
     private boolean isReady = false;
+    private JTextArea chatArea;
 
     // 普通构造
     public ChessBoard(){
@@ -785,5 +786,20 @@ public class ChessBoard extends Canvas{
                 ((Frame) parent).setTitle("中国象棋联网版 - 你是：" + role);
             }
         });
+    }
+
+    // 设置聊天区
+    public void setChatArea(JTextArea chatArea) {
+        this.chatArea = chatArea;
+    }
+
+    // 聊天功能
+    public void appendChat(String text, boolean isMe) {
+        if (chatArea != null) {
+            String name = isMe ? "【我】" : "【对方】";
+            chatArea.append(name + ": " + text + "\n");
+            // 自动滚动
+            chatArea.setCaretPosition(chatArea.getDocument().getLength());
+        }
     }
 }

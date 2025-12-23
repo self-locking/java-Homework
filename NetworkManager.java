@@ -30,12 +30,11 @@ public class NetworkManager {
         in = new ObjectInputStream(socket.getInputStream());
     }
 
-    // 唯一发送方法
     public void sendMessage(GameMessage msg) {
         try {
             out.writeObject(msg);
             out.flush();
-            out.reset(); // 关键：清除序列化缓存，确保对象更新
+            out.reset();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -64,14 +63,13 @@ public class NetworkManager {
             case SIDE_ASSIGNMENT:
                 board.resetAndStart(msg.getPlayerSide());
                 break;
+            case CHAT:
+                // 核心：收到聊天消息后调用棋盘的显示方法
+                board.appendChat(msg.getMessage(), false);
+                break;
             case GAME_OVER:
-                board.endGameRemote(msg.getMessage());
+                // board.endGameRemote(msg.getMessage()); // 如果你有这个方法
                 break;
         }
-    }
-
-    public void close() {
-        isRunning = false;
-        try { socket.close(); } catch (IOException e) {}
     }
 }
