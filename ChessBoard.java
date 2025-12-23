@@ -268,12 +268,19 @@ public class ChessBoard extends Canvas{
 
     // 远程结束游戏的方法
     public void endGameRemote(String msg) {
+        if (this.gameOver) return; // 如果本地已经判定结束，不再处理
         this.gameOver = true;
+        repaint(); // 确保 UI 更新显示“游戏结束”
         JOptionPane.showMessageDialog(this, msg);
     }
 
     // 判断胜负
     private void checkWinCondition() {
+        // 如果游戏已经标记为结束，直接跳过，防止重复弹窗
+        if (this.gameOver) {
+            return;
+        }
+
         boolean redKingAlive = false;
         boolean blackKingAlive = false;
 
@@ -287,12 +294,14 @@ public class ChessBoard extends Canvas{
             }
         }
 
+        // 判定胜负
         if (!redKingAlive || !blackKingAlive) {
-            this.gameOver = true;
+            this.gameOver = true; // 立即加锁
             String winMsg = !redKingAlive ? "黑方获胜！" : "红方获胜！";
 
-            // 修改点：如果是我方吃掉了对方的王，通知对方游戏结束
-            if (isNetworkGame && networkManager != null) {
+            // 关键修复：只有当是“我的回合”且我赢了时，才通知对方
+            // 这样可以避免接收方在处理 MOVE 消息时又反过来发送一遍 GAME_OVER
+            if (isNetworkGame && networkManager != null && round == -mySide) {
                 GameMessage msg = new GameMessage(GameMessage.MessageType.GAME_OVER);
                 msg.setMessage(winMsg);
                 networkManager.sendMessage(msg);
