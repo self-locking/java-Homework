@@ -21,6 +21,7 @@ public class ChessBoard extends Canvas{
     private boolean eated = false;
     private boolean isReady = false;
     private JTextArea chatArea;
+    private JFrame gameFrame; // 保存frame引用
 
     // 普通构造
     public ChessBoard(){
@@ -137,14 +138,14 @@ public class ChessBoard extends Canvas{
         repaint();              // 刷新显示
     }
 
-    // 提醒“将军”
+    // 提醒"将军"
     private void drawCheckWarning(Graphics2D g2) {
         g2.setColor(new Color(180, 30, 30));
         g2.setFont(new Font("宋体",Font.BOLD, 60));
         g2.drawString("将军！", 920, 400);
     }
 
-    // 提醒“吃”
+    // 提醒"吃"
     private void drawEat(Graphics2D g2) {
         g2.setColor(new Color(180, 30, 30));
         g2.setFont(new Font("宋体",Font.BOLD, 60));
@@ -271,7 +272,7 @@ public class ChessBoard extends Canvas{
     public void endGameRemote(String msg) {
         if (this.gameOver) return; // 如果本地已经判定结束，不再处理
         this.gameOver = true;
-        repaint(); // 确保 UI 更新显示“游戏结束”
+        repaint(); // 确保 UI 更新显示"游戏结束"
         JOptionPane.showMessageDialog(this, msg);
     }
 
@@ -300,7 +301,7 @@ public class ChessBoard extends Canvas{
             this.gameOver = true; // 立即加锁
             String winMsg = !redKingAlive ? "黑方获胜！" : "红方获胜！";
 
-            // 关键修复：只有当是“我的回合”且我赢了时，才通知对方
+            // 关键修复：只有当是"我的回合"且我赢了时，才通知对方
             // 这样可以避免接收方在处理 MOVE 消息时又反过来发送一遍 GAME_OVER
             if (isNetworkGame && networkManager != null && round == -mySide) {
                 GameMessage msg = new GameMessage(GameMessage.MessageType.GAME_OVER);
@@ -772,20 +773,21 @@ public class ChessBoard extends Canvas{
         }
     }
 
+    // 设置游戏窗口引用
+    public void setGameFrame(JFrame frame) {
+        this.gameFrame = frame;
+    }
+
     // 确保阵营安全
     public void setMySide(int side) {
         this.mySide = side;
-        // 强制 UI 线程更新标题
-        EventQueue.invokeLater(() -> {
-            Container parent = this.getParent();
-            while (parent != null && !(parent instanceof Frame)) {
-                parent = parent.getParent();
-            }
-            if (parent instanceof Frame) {
-                String role = (side == 1) ? "红方" : "黑方";
-                ((Frame) parent).setTitle("中国象棋联网版 - 你是：" + role);
-            }
-        });
+        // 使用保存的frame引用直接更新标题
+        if (gameFrame != null) {
+            String role = (side == 1) ? "红方" : "黑方";
+            EventQueue.invokeLater(() -> {
+                gameFrame.setTitle("中国象棋联网版 - 你是：" + role);
+            });
+        }
     }
 
     // 设置聊天区

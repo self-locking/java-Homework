@@ -55,11 +55,14 @@ public class GameLauncher {
 
     private static void startAsServer() {
         try {
-            ServerSocket serverSocket = new ServerSocket(8888);
             JFrame frame = new JFrame("等待玩家连接...");
             ChessBoard board = new ChessBoard();
             initUI(frame, board);
 
+            // 先保存frame引用到board，这样setMySide可以找到它
+            board.setGameFrame(frame);
+
+            ServerSocket serverSocket = new ServerSocket(8888);
             Socket socket = serverSocket.accept();
             NetworkManager nm = new NetworkManager(socket, board);
 
@@ -82,6 +85,9 @@ public class GameLauncher {
             JFrame frame = new JFrame("正在连接服务器...");
             ChessBoard board = new ChessBoard();
             initUI(frame, board);
+
+            // 关键修复：先保存frame引用到board
+            board.setGameFrame(frame);
 
             NetworkManager nm = new NetworkManager(ip, 8888, board);
             board.isNetworkGame = true;
