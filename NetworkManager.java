@@ -10,6 +10,7 @@ public class NetworkManager {
     private ChessBoard board;
     private boolean isRunning = true;
 
+    // 客户端Socket构造
     public NetworkManager(String serverIP, int port, ChessBoard board) throws IOException {
         this.board = board;
         this.socket = new Socket(serverIP, port);
@@ -17,6 +18,7 @@ public class NetworkManager {
         startListening();
     }
 
+     // 服务端Socket构造
     public NetworkManager(Socket socket, ChessBoard board) throws IOException {
         this.board = board;
         this.socket = socket;
@@ -30,6 +32,7 @@ public class NetworkManager {
         in = new ObjectInputStream(socket.getInputStream());
     }
 
+    // 将GameMessage对象发送给对方
     public void sendMessage(GameMessage msg) {
         try {
             out.writeObject(msg);
@@ -40,6 +43,7 @@ public class NetworkManager {
         }
     }
 
+    // 创建一个后台线程持续监听输入流，异步处理收到的消息，不阻塞主线程
     private void startListening() {
         new Thread(() -> {
             while (isRunning) {
@@ -55,6 +59,7 @@ public class NetworkManager {
         }).start();
     }
 
+    // 根据消息类型调用ChessBoard对应方法
     private void handleMessage(GameMessage msg) {
         switch (msg.getType()) {
             case MOVE:
@@ -64,11 +69,9 @@ public class NetworkManager {
                 board.resetAndStart(msg.getPlayerSide());
                 break;
             case CHAT:
-                // 核心：收到聊天消息后调用棋盘的显示方法
                 board.appendChat(msg.getMessage(), false);
                 break;
             case GAME_OVER:
-                // board.endGameRemote(msg.getMessage()); // 如果你有这个方法
                 break;
         }
     }

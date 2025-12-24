@@ -26,7 +26,7 @@ public class GameLauncher {
         chatArea.setEditable(false);
         chatArea.setLineWrap(true);
         chatArea.setFont(new Font("微软雅黑", Font.PLAIN, 14));
-        board.setChatArea(chatArea); // 关联
+        board.setChatArea(chatArea); // 关联board
 
         JTextField chatInput = new JTextField();
         chatInput.addActionListener(e -> {
@@ -34,9 +34,9 @@ public class GameLauncher {
             if (!text.isEmpty() && board.networkManager != null) {
                 GameMessage chatMsg = new GameMessage(GameMessage.MessageType.CHAT);
                 chatMsg.setMessage(text);
-                board.networkManager.sendMessage(chatMsg);
-                board.appendChat(text, true); // 自己发的
-                chatInput.setText("");
+                board.networkManager.sendMessage(chatMsg);  // 对方信息
+                board.appendChat(text, true);         // 己方信息
+                chatInput.setText("");                     // 清空输入框
             }
         });
 
@@ -53,6 +53,7 @@ public class GameLauncher {
         frame.setVisible(true);
     }
 
+    // 启动服务器
     private static void startAsServer() {
         try {
             JFrame frame = new JFrame("等待玩家连接...");
@@ -62,7 +63,7 @@ public class GameLauncher {
             // 先保存frame引用到board，这样setMySide可以找到它
             board.setGameFrame(frame);
 
-            ServerSocket serverSocket = new ServerSocket(8888);
+            ServerSocket serverSocket = new ServerSocket(1234);
             Socket socket = serverSocket.accept();
             NetworkManager nm = new NetworkManager(socket, board);
 
@@ -78,6 +79,7 @@ public class GameLauncher {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
+    // 启动客户端
     private static void startAsClient() {
         String ip = JOptionPane.showInputDialog("请输入服务器IP:", "localhost");
         if (ip == null) return;
@@ -86,10 +88,10 @@ public class GameLauncher {
             ChessBoard board = new ChessBoard();
             initUI(frame, board);
 
-            // 关键修复：先保存frame引用到board
+            // 先保存frame引用到board
             board.setGameFrame(frame);
 
-            NetworkManager nm = new NetworkManager(ip, 8888, board);
+            NetworkManager nm = new NetworkManager(ip, 1234, board);
             board.isNetworkGame = true;
             board.networkManager = nm;
         } catch (Exception e) { e.printStackTrace(); }

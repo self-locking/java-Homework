@@ -6,22 +6,22 @@ import java.awt.image.BufferedImage;
 import javax.swing.*;
 
 public class ChessBoard extends Canvas{
-    boolean isNetworkGame = false;  // 是否是网络游戏
-    int mySide = 0;                 // 我的阵营 (1=红, -1=黑)
-    NetworkManager networkManager;   // 网络管理器
+    boolean isNetworkGame = false;        // 是否是网络游戏
+    int mySide = 0;                       // 我的阵营 (1=红, -1=黑)
+    NetworkManager networkManager;        // 网络管理器
     final int boardX = 100;
     final int boardY = 60;
-    final int distance = 90; // 格子间距
+    final int distance = 90;              // 格子间距
     Piece[][] pieces = new Piece[9][10];
     private Piece selectedPiece = null;
     private String selectedPosition = null;
-    private int round = 1;  // 回合变化
+    private int round = 1;                // 回合变化
     private BufferedImage boardImage;
-    private boolean gameOver = false; // 游戏是否结束
-    private boolean eated = false;
-    private boolean isReady = false;
-    private JTextArea chatArea;
-    private JFrame gameFrame; // 保存frame引用
+    private boolean gameOver = false;     // 游戏是否结束
+    private boolean eated = false;        // 是否吃子
+    private boolean isReady = false;      // 游戏是否开始
+    private JTextArea chatArea;           // 对话区域
+    private JFrame gameFrame;             // 保存frame引用
 
     // 普通构造
     public ChessBoard(){
@@ -47,6 +47,7 @@ public class ChessBoard extends Canvas{
         this.networkManager = netManager;
     }
 
+    // 显示刷新
     public void paint(Graphics g) {
         super.paint(g);
 
@@ -131,10 +132,10 @@ public class ChessBoard extends Canvas{
     // 启动游戏
     public void resetAndStart(int side) {
         this.isReady = true;    // 激活棋盘
-        this.round = 1;         // 重置为红方先走
+        this.round = 1;         // 红方先走
         this.gameOver = false;  // 重置游戏状态
         this.setMySide(side);   // 设置当前玩家的阵营
-        initializePieces();     // 重新初始化棋子位置（可选，看你是否需要开局重置）
+        initializePieces();     // 重新初始化棋子位置
         repaint();              // 刷新显示
     }
 
@@ -225,7 +226,7 @@ public class ChessBoard extends Canvas{
                 selectedPosition = null;
 
                 if (moved) {
-                    // 修改点：使用统一的 sendMessage 接口
+                    // 使用统一的 sendMessage 接口
                     if (isNetworkGame && networkManager != null) {
                         GameMessage moveMsg = new GameMessage(
                                 GameMessage.MessageType.MOVE,
@@ -262,18 +263,11 @@ public class ChessBoard extends Canvas{
         return colChar + rowStr;
     }
 
+    // 获取位置上棋子信息
     private Piece getPieceAtPosition(String position) {
         int col = position.charAt(0) - 'A';
         int row = Integer.parseInt(position.substring(1));
         return pieces[col][row];
-    }
-
-    // 远程结束游戏的方法
-    public void endGameRemote(String msg) {
-        if (this.gameOver) return; // 如果本地已经判定结束，不再处理
-        this.gameOver = true;
-        repaint(); // 确保 UI 更新显示"游戏结束"
-        JOptionPane.showMessageDialog(this, msg);
     }
 
     // 判断胜负
@@ -301,8 +295,7 @@ public class ChessBoard extends Canvas{
             this.gameOver = true; // 立即加锁
             String winMsg = !redKingAlive ? "黑方获胜！" : "红方获胜！";
 
-            // 关键修复：只有当是"我的回合"且我赢了时，才通知对方
-            // 这样可以避免接收方在处理 MOVE 消息时又反过来发送一遍 GAME_OVER
+            // 避免接收方在处理 MOVE 消息时又反过来发送一遍 GAME_OVER
             if (isNetworkGame && networkManager != null && round == -mySide) {
                 GameMessage msg = new GameMessage(GameMessage.MessageType.GAME_OVER);
                 msg.setMessage(winMsg);
@@ -453,6 +446,7 @@ public class ChessBoard extends Canvas{
         }
     }
 
+    // 棋子移动规则
     private Boolean movePiece(Piece selectedPiece, String position) {
         int oldCol = selectedPosition.charAt(0) - 'A';
         int oldRow = Integer.parseInt(selectedPosition.substring(1));
@@ -757,15 +751,15 @@ public class ChessBoard extends Canvas{
     public void receiveOpponentMove(String fromPos, String toPos) {
         Piece piece = getPieceAtPosition(fromPos);
         if (piece != null) {
-            // 关键：模拟选中的上下文，否则 movePiece 内部会报空指针
+            // 模拟选中的上下文，否则 movePiece 内部会报空指针
             this.selectedPosition = fromPos;
 
             // 执行移动逻辑
             boolean moved = movePiece(piece, toPos);
 
             if (moved) {
-                round = -round; // 切换到我的回合
-                checkWinCondition(); // 对方走完也可能导致我输掉，需要检测
+                round = -round; // 切换回合
+                checkWinCondition();
             }
 
             this.selectedPosition = null;

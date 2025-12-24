@@ -2,16 +2,15 @@ package Experiment;
 import java.awt.*;
 
 public class Piece extends Canvas{
-    private String POSITION; // 棋子逻辑位置
-    private int x, y;        // 棋子像素位置
-    final private Color pieceColor;
-    private final int type; // 棋子颜色类型
-    final private String name;
-    // 用于棋子的绘画和像素坐标计算
+    private String POSITION;        // 棋子逻辑位置
+    private int x, y;               // 棋子像素位置
+    final private Color pieceColor; // 棋子颜色
+    private final int type;         // 棋子颜色类型
+    final private String name;      // 用于棋子的绘画和像素坐标计算
+    private boolean selected;       // 是否被选中
     final int distance = 90;
     final int X=100, Y=60;
     final int R = 40;
-    private boolean selected; // 是否被选中
 
     public Piece(String position, int color, String str3) {
         POSITION = position;
@@ -58,9 +57,6 @@ public class Piece extends Canvas{
         int textHeight = fm.getAscent();
         g2.drawString(name, x - textWidth/2, y + textHeight/2);
     }
-
-    // 获取棋子位置
-    public String getPosition() {return POSITION;}
 
     // 更新棋子位置
     public void setPosition(String position) {

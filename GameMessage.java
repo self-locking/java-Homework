@@ -5,14 +5,10 @@ public class GameMessage implements Serializable {
     private static final long serialVersionUID = 1L;
 
     public enum MessageType {
-        MOVE,
-        GAME_START,
-        GAME_OVER,
-        YOUR_TURN,
-        INVALID_MOVE,
-        PLAYER_JOINED,
-        SIDE_ASSIGNMENT,
-        CHAT // 新增聊天类型
+        MOVE,              // 棋子移动
+        GAME_OVER,         // 游戏结束
+        SIDE_ASSIGNMENT,   // 阵营分配
+        CHAT               // 聊天
     }
 
     private MessageType type;
