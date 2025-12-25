@@ -18,7 +18,7 @@ public class NetworkManager {
         startListening();
     }
 
-     // 服务端Socket构造
+    // 服务端Socket构造
     public NetworkManager(Socket socket, ChessBoard board) throws IOException {
         this.board = board;
         this.socket = socket;
@@ -72,6 +72,12 @@ public class NetworkManager {
                 board.appendChat(msg.getMessage(), false);
                 break;
             case GAME_OVER:
+                break;
+            case RESTART_REQUEST:
+                board.receiveRestartRequest();
+                break;
+            case RESTART_RESPONSE:
+                board.receiveRestartResponse(msg.isAccepted());
                 break;
         }
     }

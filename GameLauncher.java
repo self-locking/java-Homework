@@ -24,15 +24,18 @@ public class GameLauncher {
         sidePanel.setPreferredSize(new Dimension(300, 600));
         sidePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
+        // 顶部控制面板(语音+重新开始)
+        JPanel topPanel = new JPanel(new BorderLayout(5, 5));
+
         // 语音通话区域
         JPanel voicePanel = new JPanel(new BorderLayout(5, 5));
         voicePanel.setBorder(BorderFactory.createTitledBorder("语音通话"));
-        voicePanel.setPreferredSize(new Dimension(280, 120));
+        voicePanel.setPreferredSize(new Dimension(280, 100));
 
-        // 创建自定义的按钮
+        // 创建自定义的语音按钮
         JButton voiceButton = new JButton("按住说话");
-        voiceButton.setPreferredSize(new Dimension(260, 60));
-        voiceButton.setFont(new Font("微软雅黑", Font.BOLD, 18));
+        voiceButton.setPreferredSize(new Dimension(260, 50));
+        voiceButton.setFont(new Font("微软雅黑", Font.BOLD, 16));
         voiceButton.setBackground(new Color(76, 175, 80));
         voiceButton.setForeground(Color.WHITE);
         voiceButton.setFocusPainted(false);
@@ -40,11 +43,6 @@ public class GameLauncher {
                 BorderFactory.createLineBorder(new Color(56, 142, 60), 2),
                 BorderFactory.createEmptyBorder(10, 20, 10, 20)
         ));
-
-        // 状态标签
-        JLabel voiceStatus = new JLabel("松开按钮停止", SwingConstants.CENTER);
-        voiceStatus.setFont(new Font("微软雅黑", Font.PLAIN, 12));
-        voiceStatus.setForeground(Color.GRAY);
 
         // 鼠标按下 - 开始说话
         voiceButton.addMouseListener(new MouseAdapter() {
@@ -54,8 +52,6 @@ public class GameLauncher {
                     voiceManager.startTransmitting();
                     voiceButton.setBackground(new Color(244, 67, 54));
                     voiceButton.setText("正在说话...");
-                    voiceStatus.setText("对方可以听到你的声音");
-                    voiceStatus.setForeground(new Color(244, 67, 54));
                 }
             }
 
@@ -65,14 +61,37 @@ public class GameLauncher {
                     voiceManager.stopTransmitting();
                     voiceButton.setBackground(new Color(76, 175, 80));
                     voiceButton.setText("按住说话");
-                    voiceStatus.setText("松开按钮停止");
-                    voiceStatus.setForeground(Color.GRAY);
                 }
             }
         });
 
         voicePanel.add(voiceButton, BorderLayout.CENTER);
-        voicePanel.add(voiceStatus, BorderLayout.SOUTH);
+
+        // 重新开始按钮区域
+        JPanel restartPanel = new JPanel(new BorderLayout(5, 5));
+        restartPanel.setBorder(BorderFactory.createTitledBorder("游戏控制"));
+        restartPanel.setPreferredSize(new Dimension(280, 70));
+
+        JButton restartButton = new JButton("重新开始");
+        restartButton.setPreferredSize(new Dimension(260, 35));
+        restartButton.setFont(new Font("微软雅黑", Font.BOLD, 14));
+        restartButton.setBackground(new Color(33, 150, 243));
+        restartButton.setForeground(Color.WHITE);
+        restartButton.setFocusPainted(false);
+        restartButton.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(25, 118, 210), 2),
+                BorderFactory.createEmptyBorder(5, 15, 5, 15)
+        ));
+
+        restartButton.addActionListener(e -> {
+            board.requestRestart();
+        });
+
+        restartPanel.add(restartButton, BorderLayout.CENTER);
+
+        // 将语音和重新开始按钮放入顶部面板
+        topPanel.add(voicePanel, BorderLayout.NORTH);
+        topPanel.add(restartPanel, BorderLayout.SOUTH);
 
         // 文字聊天区域
         JPanel chatPanel = new JPanel(new BorderLayout());
@@ -98,13 +117,13 @@ public class GameLauncher {
         });
 
         JScrollPane chatScroll = new JScrollPane(chatArea);
-        chatScroll.setPreferredSize(new Dimension(280, 400));
+        chatScroll.setPreferredSize(new Dimension(280, 350));
 
         chatPanel.add(chatScroll, BorderLayout.CENTER);
         chatPanel.add(chatInput, BorderLayout.SOUTH);
 
         // 组装右侧面板
-        sidePanel.add(voicePanel, BorderLayout.NORTH);
+        sidePanel.add(topPanel, BorderLayout.NORTH);
         sidePanel.add(chatPanel, BorderLayout.CENTER);
 
         // 主窗口布局

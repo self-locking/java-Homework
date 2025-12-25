@@ -22,6 +22,8 @@ public class ChessBoard extends Canvas{
     private boolean isReady = false;      // 游戏是否开始
     private JTextArea chatArea;           // 对话区域
     private JFrame gameFrame;             // 保存frame引用
+    private boolean myRestartRequest = false;      // 我是否请求重新开始
+    private boolean opponentRestartRequest = false; // 对方是否请求重新开始
 
     // 普通构造
     public ChessBoard(){
@@ -125,7 +127,7 @@ public class ChessBoard extends Canvas{
             String roundName = (round == 1) ? "红" : "黑";
             g2.setFont(new Font("宋体",Font.BOLD, 30));
             g2.setColor(Color.BLACK);
-            g2.drawString("当前回合："+roundName, 900, 200);
+            g2.drawString("当前回合:"+roundName, 900, 200);
         }
     }
 
@@ -134,6 +136,8 @@ public class ChessBoard extends Canvas{
         this.isReady = true;    // 激活棋盘
         this.round = 1;         // 红方先走
         this.gameOver = false;  // 重置游戏状态
+        this.myRestartRequest = false;      // 重置重新开始请求
+        this.opponentRestartRequest = false;
         this.setMySide(side);   // 设置当前玩家的阵营
         initializePieces();     // 重新初始化棋子位置
         repaint();              // 刷新显示
@@ -143,17 +147,24 @@ public class ChessBoard extends Canvas{
     private void drawCheckWarning(Graphics2D g2) {
         g2.setColor(new Color(180, 30, 30));
         g2.setFont(new Font("宋体",Font.BOLD, 60));
-        g2.drawString("将军！", 920, 400);
+        g2.drawString("将军!", 920, 400);
     }
 
     // 提醒"吃"
     private void drawEat(Graphics2D g2) {
         g2.setColor(new Color(180, 30, 30));
         g2.setFont(new Font("宋体",Font.BOLD, 60));
-        g2.drawString("吃！", 920, 300);
+        g2.drawString("吃!", 920, 300);
     }
 
     private void initializePieces() {
+        // 清空棋盘
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 10; j++) {
+                pieces[i][j] = null;
+            }
+        }
+
         // 红方
         pieces[0][9] = new Piece("A9", 0, "车");
         pieces[1][9] = new Piece("B9", 0, "马");
@@ -220,7 +231,7 @@ public class ChessBoard extends Canvas{
                 boolean moved = movePiece(selectedPiece, position);
 
                 selectedPiece.setSelected(false);
-                // 暂存当前选中的棋子信息用于网络同步，然后清空引用
+                // 暂存当前选中的棋子信息用于网络同步,然后清空引用
                 Piece lastSelected = selectedPiece;
                 selectedPiece = null;
                 selectedPosition = null;
@@ -272,7 +283,7 @@ public class ChessBoard extends Canvas{
 
     // 判断胜负
     private void checkWinCondition() {
-        // 如果游戏已经标记为结束，直接跳过，防止重复弹窗
+        // 如果游戏已经标记为结束,直接跳过,防止重复弹窗
         if (this.gameOver) {
             return;
         }
@@ -293,9 +304,9 @@ public class ChessBoard extends Canvas{
         // 判定胜负
         if (!redKingAlive || !blackKingAlive) {
             this.gameOver = true; // 立即加锁
-            String winMsg = !redKingAlive ? "黑方获胜！" : "红方获胜！";
+            String winMsg = !redKingAlive ? "黑方获胜!" : "红方获胜!";
 
-            // 避免接收方在处理 MOVE 消息时又反过来发送一遍 GAME_OVER
+            // 避免接收方在处理 MOVE 消息时再发过来发送一遍 GAME_OVER
             if (isNetworkGame && networkManager != null && round == -mySide) {
                 GameMessage msg = new GameMessage(GameMessage.MessageType.GAME_OVER);
                 msg.setMessage(winMsg);
@@ -422,11 +433,11 @@ public class ChessBoard extends Canvas{
                         }
                     }
                 }
-                // 炮攻击将军时，中间必须有一个棋子
+                // 炮攻击将军时,中间必须有一个棋子
                 return piecesBetween == 1;
 
             case "兵":
-                // 红兵向前（row减小），过河后可以左右
+                // 红兵向前(row减小),过河后可以左右
                 if (fromRow > 4) { // 未过河
                     return false;
                 } else { // 已过河
@@ -434,7 +445,7 @@ public class ChessBoard extends Canvas{
                 }
 
             case "卒":
-                // 黑卒向前（row增大），过河后可以左右
+                // 黑卒向前(row增大),过河后可以左右
                 if (fromRow < 5) { // 未过河
                     return false;
                 } else { // 已过河
@@ -751,7 +762,7 @@ public class ChessBoard extends Canvas{
     public void receiveOpponentMove(String fromPos, String toPos) {
         Piece piece = getPieceAtPosition(fromPos);
         if (piece != null) {
-            // 模拟选中的上下文，否则 movePiece 内部会报空指针
+            // 模拟选中的上下文,否则 movePiece 内部会报空指针
             this.selectedPosition = fromPos;
 
             // 执行移动逻辑
@@ -767,6 +778,25 @@ public class ChessBoard extends Canvas{
         }
     }
 
+    // 检查是否双方都同意重新开始
+    private void checkRestartCondition() {
+        if (myRestartRequest && opponentRestartRequest) {
+            // 双方都同意,交换阵营并重新开始
+            int newSide = -mySide;  // 交换阵营
+
+            // 发送阵营交换信息给对方
+            if (isNetworkGame && networkManager != null) {
+                GameMessage msg = new GameMessage(GameMessage.MessageType.SIDE_ASSIGNMENT);
+                msg.setPlayerSide(-newSide);  // 对方得到相反的阵营
+                networkManager.sendMessage(msg);
+            }
+
+            // 本地重新开始
+            resetAndStart(newSide);
+            appendChat("游戏重新开始!阵营已交换", false);
+        }
+    }
+
     // 设置游戏窗口引用
     public void setGameFrame(JFrame frame) {
         this.gameFrame = frame;
@@ -779,7 +809,7 @@ public class ChessBoard extends Canvas{
         if (gameFrame != null) {
             String role = (side == 1) ? "红方" : "黑方";
             EventQueue.invokeLater(() -> {
-                gameFrame.setTitle("中国象棋联网版 - 你是：" + role);
+                gameFrame.setTitle("中国象棋联网版 - 你是:" + role);
             });
         }
     }
@@ -796,6 +826,57 @@ public class ChessBoard extends Canvas{
             chatArea.append(name + ": " + text + "\n");
             // 自动滚动
             chatArea.setCaretPosition(chatArea.getDocument().getLength());
+        }
+    }
+
+    // 处理重新开始请求
+    public void requestRestart() {
+        // 发送重新开始请求给对方
+        if (isNetworkGame && networkManager != null) {
+            GameMessage msg = new GameMessage(GameMessage.MessageType.RESTART_REQUEST);
+            networkManager.sendMessage(msg);
+        }
+    }
+
+    // 接收对方的重新开始请求，弹出对话框
+    public void receiveRestartRequest() {
+        SwingUtilities.invokeLater(() -> {
+            int response = JOptionPane.showConfirmDialog(
+                    this,
+                    "对方请求重新开始游戏，是否同意？",
+                    "重新开始确认",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
+            );
+
+            // 发送响应给对方
+            if (isNetworkGame && networkManager != null) {
+                GameMessage msg = new GameMessage(GameMessage.MessageType.RESTART_RESPONSE);
+                msg.setAccepted(response == JOptionPane.YES_OPTION);
+                networkManager.sendMessage(msg);
+            }
+
+            // 如果同意，执行重新开始
+            if (response == JOptionPane.YES_OPTION) {
+                int newSide = -mySide;  // 交换阵营
+                resetAndStart(newSide);
+                appendChat("对局重开", false);
+            } else {
+                appendChat("拒绝重开", false);
+            }
+        });
+    }
+
+    // 接收对方对重新开始请求的响应
+    public void receiveRestartResponse(boolean accepted) {
+        if (accepted) {
+            // 对方同意，交换阵营并重新开始
+            int newSide = -mySide;
+            resetAndStart(newSide);
+            appendChat("对局重开", false);
+        } else {
+            // 对方拒绝
+            appendChat("拒绝重开", false);
         }
     }
 }

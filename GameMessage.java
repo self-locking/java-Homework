@@ -8,7 +8,9 @@ public class GameMessage implements Serializable {
         MOVE,              // 棋子移动
         GAME_OVER,         // 游戏结束
         SIDE_ASSIGNMENT,   // 阵营分配
-        CHAT               // 聊天
+        CHAT,              // 聊天
+        RESTART_REQUEST,   // 重新开始请求
+        RESTART_RESPONSE   // 重新开始响应(同意/拒绝)
     }
 
     private MessageType type;
@@ -16,6 +18,7 @@ public class GameMessage implements Serializable {
     private String toPosition;
     private String message;
     private int playerSide;
+    private boolean accepted;  // 是否接受重新开始请求
 
     public GameMessage(MessageType type) {
         this.type = type;
@@ -35,4 +38,6 @@ public class GameMessage implements Serializable {
     public void setMessage(String message) { this.message = message; }
     public int getPlayerSide() { return playerSide; }
     public void setPlayerSide(int side) { this.playerSide = side; }
+    public boolean isAccepted() { return accepted; }
+    public void setAccepted(boolean accepted) { this.accepted = accepted; }
 }
