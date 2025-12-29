@@ -71,6 +71,12 @@ public class NetworkManager {
             case RESTART_RESPONSE:
                 board.receiveRestartResponse(msg.isAccepted());
                 break;
+            case UNDO_REQUEST:
+                board.receiveUndoRequest();
+                break;
+            case UNDO_RESPONSE:
+                board.receiveUndoResponse(msg.isAccepted());
+                break;
         }
     }
 }

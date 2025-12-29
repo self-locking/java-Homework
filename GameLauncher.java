@@ -6,6 +6,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.awt.GridLayout;
 
 public class GameLauncher {
     public static void main(String[] args) {
@@ -67,10 +68,10 @@ public class GameLauncher {
 
         voicePanel.add(voiceButton, BorderLayout.CENTER);
 
-        // 重新开始按钮区域
-        JPanel restartPanel = new JPanel(new BorderLayout(5, 5));
+        // 重新开始和悔棋按钮区域
+        JPanel restartPanel = new JPanel(new GridLayout(2, 1, 5, 5));
         restartPanel.setBorder(BorderFactory.createTitledBorder("游戏控制"));
-        restartPanel.setPreferredSize(new Dimension(280, 70));
+        restartPanel.setPreferredSize(new Dimension(280, 120));
 
         JButton restartButton = new JButton("重新开始");
         restartButton.setPreferredSize(new Dimension(260, 35));
@@ -87,7 +88,23 @@ public class GameLauncher {
             board.requestRestart();
         });
 
-        restartPanel.add(restartButton, BorderLayout.CENTER);
+        JButton undoButton = new JButton("悔棋");
+        undoButton.setPreferredSize(new Dimension(260, 35));
+        undoButton.setFont(new Font("微软雅黑", Font.BOLD, 14));
+        undoButton.setBackground(new Color(255, 152, 0));  // 橙色
+        undoButton.setForeground(Color.WHITE);
+        undoButton.setFocusPainted(false);
+        undoButton.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(230, 126, 34), 2),
+                BorderFactory.createEmptyBorder(5, 15, 5, 15)
+        ));
+
+        undoButton.addActionListener(e -> {
+            board.requestUndo();
+        });
+
+        restartPanel.add(restartButton);
+        restartPanel.add(undoButton);
 
         // 将语音和重新开始按钮放入顶部面板
         topPanel.add(voicePanel, BorderLayout.NORTH);

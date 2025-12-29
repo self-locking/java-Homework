@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.util.Stack;
 import javax.swing.*;
 
 public class ChessBoard extends Canvas{
@@ -25,8 +26,11 @@ public class ChessBoard extends Canvas{
     private JFrame gameFrame;             // 保存frame引用
     private boolean myRestartRequest = false;      // 我是否请求重新开始
     private boolean opponentRestartRequest = false; // 对方是否请求重新开始
+    private Stack<Move> moveHistory = new Stack<>();  // 走棋历史
+    private boolean canUndo = false;  // 是否可以悔棋
+    private JButton undoButton;  // 保存悔棋按钮引用
 
-    // 普通构造
+    // 构造
     public ChessBoard(){
         setPreferredSize(new Dimension(1100, 1100));
         setBackground(new Color(210, 180, 140));
@@ -40,14 +44,6 @@ public class ChessBoard extends Canvas{
             }
         });
         createBoardImage();
-    }
-
-    // 网络游戏构造函数
-    public ChessBoard(int playerSide, NetworkManager netManager) {
-        this();  // 调用原来的构造函数
-        this.isNetworkGame = true;
-        this.mySide = playerSide;
-        this.networkManager = netManager;
     }
 
     // 显示刷新
@@ -171,8 +167,11 @@ public class ChessBoard extends Canvas{
         this.gameOver = false;  // 重置游戏状态
         this.myRestartRequest = false;      // 重置重新开始请求
         this.opponentRestartRequest = false;
+        canUndo = false;
         this.setMySide(side);   // 设置当前玩家的阵营
         initializePieces();     // 重新初始化棋子位置
+        clearMoveHistory();     // 清楚棋子历史
+        updateUndoButtonState();// 更新按钮状态
         repaint();              // 刷新显示
     }
 
@@ -283,10 +282,12 @@ public class ChessBoard extends Canvas{
 
                     round = -round;
                     checkWinCondition(); // 每次移动后检测胜负
+                    canUndo = true;  // 移动后允许悔棋
                 }
                 repaint();
             }
         }
+        updateUndoButtonState();
     }
 
     // 获取点击位置
@@ -498,6 +499,7 @@ public class ChessBoard extends Canvas{
         int row = Integer.parseInt(position.substring(1));
 
         Piece targetPiece = pieces[col][row];
+        Piece capturedPiece = targetPiece; // 保存被吃的棋子
         if (targetPiece != null && targetPiece.getType() == selectedPiece.getType()) {
             return false;
         }
@@ -515,6 +517,7 @@ public class ChessBoard extends Canvas{
                         pieces[col][row] = pieces[oldCol][oldRow];
                         pieces[oldCol][oldRow] = null;
                         selectedPiece.setPosition(position);
+                        moveHistory.push(new Move(selectedPosition, position, capturedPiece, selectedPiece.getType()));
                         return true;
                     }
                 } else {
@@ -524,6 +527,7 @@ public class ChessBoard extends Canvas{
                         pieces[col][row] = pieces[oldCol][oldRow];
                         pieces[oldCol][oldRow] = null;
                         selectedPiece.setPosition(position);
+                        moveHistory.push(new Move(selectedPosition, position, capturedPiece, selectedPiece.getType()));
                         return true;
                     }
                 }
@@ -536,6 +540,7 @@ public class ChessBoard extends Canvas{
                         pieces[col][row] = pieces[oldCol][oldRow];
                         pieces[oldCol][oldRow] = null;
                         selectedPiece.setPosition(position);
+                        moveHistory.push(new Move(selectedPosition, position, capturedPiece, selectedPiece.getType()));
                         return true;
                     }
                 } else {
@@ -545,6 +550,7 @@ public class ChessBoard extends Canvas{
                         pieces[col][row] = pieces[oldCol][oldRow];
                         pieces[oldCol][oldRow] = null;
                         selectedPiece.setPosition(position);
+                        moveHistory.push(new Move(selectedPosition, position, capturedPiece, selectedPiece.getType()));
                         return true;
                     }
                 }
@@ -569,6 +575,7 @@ public class ChessBoard extends Canvas{
                         pieces[col][row] = pieces[oldCol][oldRow];
                         pieces[oldCol][oldRow] = null;
                         selectedPiece.setPosition(position);
+                        moveHistory.push(new Move(selectedPosition, position, capturedPiece, selectedPiece.getType()));
                         return true;
                     }
                 }
@@ -606,6 +613,7 @@ public class ChessBoard extends Canvas{
                     pieces[col][row] = pieces[oldCol][oldRow];
                     pieces[oldCol][oldRow] = null;
                     selectedPiece.setPosition(position);
+                    moveHistory.push(new Move(selectedPosition, position, capturedPiece, selectedPiece.getType()));
                     return true;
                 }
                 break;
@@ -642,6 +650,7 @@ public class ChessBoard extends Canvas{
                     pieces[col][row] = pieces[oldCol][oldRow];
                     pieces[oldCol][oldRow] = null;
                     selectedPiece.setPosition(position);
+                    moveHistory.push(new Move(selectedPosition, position, capturedPiece, selectedPiece.getType()));
                     return true;
                 }
                 break;
@@ -668,6 +677,7 @@ public class ChessBoard extends Canvas{
                         pieces[col][row] = pieces[oldCol][oldRow];
                         pieces[oldCol][oldRow] = null;
                         selectedPiece.setPosition(position);
+                        moveHistory.push(new Move(selectedPosition, position, capturedPiece, selectedPiece.getType()));
                         return true;
                     }
                 }
@@ -683,6 +693,7 @@ public class ChessBoard extends Canvas{
                             pieces[col][row] = pieces[oldCol][oldRow];
                             pieces[oldCol][oldRow] = null;
                             selectedPiece.setPosition(position);
+                            moveHistory.push(new Move(selectedPosition, position, capturedPiece, selectedPiece.getType()));
                             return true;
                         }
                     } else {
@@ -691,6 +702,7 @@ public class ChessBoard extends Canvas{
                             pieces[col][row] = pieces[oldCol][oldRow];
                             pieces[oldCol][oldRow] = null;
                             selectedPiece.setPosition(position);
+                            moveHistory.push(new Move(selectedPosition, position, capturedPiece, selectedPiece.getType()));
                             return true;
                         }
                     }
@@ -718,6 +730,7 @@ public class ChessBoard extends Canvas{
                         pieces[col][row] = pieces[oldCol][oldRow];
                         pieces[oldCol][oldRow] = null;
                         selectedPiece.setPosition(position);
+                        moveHistory.push(new Move(selectedPosition, position, capturedPiece, selectedPiece.getType()));
                         return true;
                     }
                 }
@@ -804,11 +817,13 @@ public class ChessBoard extends Canvas{
             if (moved) {
                 round = -round; // 切换回合
                 checkWinCondition();
+                canUndo = true;
             }
 
             this.selectedPosition = null;
             repaint();
         }
+        updateUndoButtonState();
     }
 
     // 设置游戏窗口引用
@@ -891,6 +906,127 @@ public class ChessBoard extends Canvas{
         } else {
             // 对方拒绝
             appendChat("拒绝重开", false, 1);
+        }
+    }
+
+    // 请求悔棋
+    public void requestUndo() {
+        if (!canUndo) {
+            JOptionPane.showMessageDialog(this, "请先走一步棋再悔棋", "提示", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (moveHistory.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "没有可以悔棋的步数", "提示", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (!isNetworkGame) {
+            // 本地游戏直接悔棋
+            performUndo();
+            return;
+        }
+
+        // 网络游戏发送请求
+        if (networkManager != null) {
+            GameMessage msg = new GameMessage(GameMessage.MessageType.UNDO_REQUEST);
+            networkManager.sendMessage(msg);
+            appendChat("已发送悔棋请求", true, 0);
+        }
+    }
+
+    // 执行悔棋操作
+    private void performUndo() {
+        if (moveHistory.isEmpty()) {
+            return;
+        }
+
+        Move lastMove = moveHistory.pop();
+
+        int fromCol = lastMove.getFromPosition().charAt(0) - 'A';
+        int fromRow = Integer.parseInt(lastMove.getFromPosition().substring(1));
+        int toCol = lastMove.getToPosition().charAt(0) - 'A';
+        int toRow = Integer.parseInt(lastMove.getToPosition().substring(1));
+
+        // 将棋子移回原位
+        Piece movingPiece = pieces[toCol][toRow];
+        if (movingPiece != null) {
+            movingPiece.setPosition(lastMove.getFromPosition());
+            pieces[fromCol][fromRow] = movingPiece;
+        }
+
+        // 恢复被吃掉的棋子
+        pieces[toCol][toRow] = lastMove.getCapturedPiece();
+
+        // 切换回合
+        round = -round;
+
+        // 清除选中状态
+        selectedPiece = null;
+        selectedPosition = null;
+
+        // 禁止连续悔棋
+        canUndo = false;
+
+        repaint();
+        updateUndoButtonState();
+    }
+
+    // 接收对方的悔棋请求
+    public void receiveUndoRequest() {
+        SwingUtilities.invokeLater(() -> {
+            int response = JOptionPane.showConfirmDialog(
+                    this,
+                    "对方请求悔棋，是否同意？",
+                    "悔棋确认",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
+            );
+
+            // 发送响应给对方
+            if (isNetworkGame && networkManager != null) {
+                GameMessage msg = new GameMessage(GameMessage.MessageType.UNDO_RESPONSE);
+                msg.setAccepted(response == JOptionPane.YES_OPTION);
+                networkManager.sendMessage(msg);
+            }
+
+            // 如果同意，执行悔棋
+            if (response == JOptionPane.YES_OPTION) {
+                performUndo();
+                appendChat("同意悔棋", false, 1);
+            } else {
+                appendChat("拒绝悔棋", false, 1);
+            }
+        });
+    }
+
+    // 接收对方对悔棋请求的响应
+    public void receiveUndoResponse(boolean accepted) {
+        if (accepted) {
+            performUndo();
+            appendChat("对方同意悔棋", false, 1);
+        } else {
+            JOptionPane.showMessageDialog(this, "对方拒绝了悔棋请求", "提示", JOptionPane.INFORMATION_MESSAGE);
+            appendChat("对方拒绝悔棋", false, 1);
+        }
+    }
+
+    public void clearMoveHistory() {
+        moveHistory.clear();
+        canUndo = false;
+    }
+
+    // 更新悔棋按钮状态
+    private void updateUndoButtonState() {
+        if (undoButton != null) {
+            SwingUtilities.invokeLater(() -> {
+                undoButton.setEnabled(canUndo && !moveHistory.isEmpty());
+                if (canUndo && !moveHistory.isEmpty()) {
+                    undoButton.setBackground(new Color(255, 152, 0));  // 橙色-可用
+                } else {
+                    undoButton.setBackground(new Color(200, 200, 200));  // 灰色-不可用
+                }
+            });
         }
     }
 }

@@ -30,6 +30,27 @@ public class Piece extends Canvas{
         name = str3;
     }
 
+    // 用于悔棋时保存被吃棋子的副本
+    public Piece(Piece other) {
+        if (other != null) {
+            this.POSITION = other.POSITION;
+            this.x = other.x;
+            this.y = other.y;
+            this.pieceColor = other.pieceColor;
+            this.type = other.type;
+            this.name = other.name;
+            this.selected = false;
+        } else {
+            this.POSITION = null;
+            this.x = 0;
+            this.y = 0;
+            this.pieceColor = null;
+            this.type = 0;
+            this.name = null;
+            this.selected = false;
+        }
+    }
+
     // 棋子底色和轮廓绘画
     public void paint(Graphics2D g2) {
         g2.setColor(new Color(255,230,150));

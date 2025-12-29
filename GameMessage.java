@@ -10,7 +10,9 @@ public class GameMessage implements Serializable {
         SIDE_ASSIGNMENT,   // 阵营分配
         CHAT,              // 聊天
         RESTART_REQUEST,   // 重新开始请求
-        RESTART_RESPONSE   // 重新开始响应(同意/拒绝)
+        RESTART_RESPONSE,   // 重新开始响应(同意/拒绝)
+        UNDO_REQUEST,      // 悔棋请求
+        UNDO_RESPONSE      // 悔棋响应
     }
 
     private MessageType type;
