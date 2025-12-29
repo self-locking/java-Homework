@@ -911,6 +911,11 @@ public class ChessBoard extends Canvas{
 
     // 请求悔棋
     public void requestUndo() {
+        if (gameOver) {
+            appendChat("棋局结束不能悔棋", true, 1);
+            return;
+        }
+
         if (!canUndo) {
             JOptionPane.showMessageDialog(this, "请先走一步棋再悔棋", "提示", JOptionPane.WARNING_MESSAGE);
             return;
@@ -968,6 +973,11 @@ public class ChessBoard extends Canvas{
 
     // 接收对方的悔棋请求
     public void receiveUndoRequest() {
+        if (gameOver) {
+            appendChat("棋局结束不能悔棋", true, 1);
+            return;
+        }
+
         SwingUtilities.invokeLater(() -> {
             int response = JOptionPane.showConfirmDialog(
                     this,
