@@ -69,7 +69,7 @@ public class NetworkManager {
                 board.resetAndStart(msg.getPlayerSide());
                 break;
             case CHAT:
-                board.appendChat(msg.getMessage(), false);
+                board.appendChat(msg.getMessage(), false, 0);
                 break;
             case GAME_OVER:
                 break;

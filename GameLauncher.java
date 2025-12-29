@@ -111,7 +111,7 @@ public class GameLauncher {
                 GameMessage chatMsg = new GameMessage(GameMessage.MessageType.CHAT);
                 chatMsg.setMessage(text);
                 board.networkManager.sendMessage(chatMsg);
-                board.appendChat(text, true);
+                board.appendChat(text, true, 0);
                 chatInput.setText("");
             }
         });

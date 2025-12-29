@@ -793,7 +793,7 @@ public class ChessBoard extends Canvas{
 
             // 本地重新开始
             resetAndStart(newSide);
-            appendChat("游戏重新开始!阵营已交换", false);
+            appendChat("游戏重新开始!阵营已交换", false, 1);
         }
     }
 
@@ -820,9 +820,9 @@ public class ChessBoard extends Canvas{
     }
 
     // 聊天功能
-    public void appendChat(String text, boolean isMe) {
+    public void appendChat(String text, boolean isMe, int n) {
         if (chatArea != null) {
-            String name = isMe ? "【我】" : "【对方】";
+            String name = (n == 1) ? "【系统】" : (isMe ? "【我】" : "【对方】");
             chatArea.append(name + ": " + text + "\n");
             // 自动滚动
             chatArea.setCaretPosition(chatArea.getDocument().getLength());
@@ -860,9 +860,9 @@ public class ChessBoard extends Canvas{
             if (response == JOptionPane.YES_OPTION) {
                 int newSide = -mySide;  // 交换阵营
                 resetAndStart(newSide);
-                appendChat("对局重开", false);
+                appendChat("对局重开", false, 1);
             } else {
-                appendChat("拒绝重开", false);
+                appendChat("拒绝重开", false, 1);
             }
         });
     }
@@ -873,10 +873,10 @@ public class ChessBoard extends Canvas{
             // 对方同意，交换阵营并重新开始
             int newSide = -mySide;
             resetAndStart(newSide);
-            appendChat("对局重开", false);
+            appendChat("对局重开", false, 1);
         } else {
             // 对方拒绝
-            appendChat("拒绝重开", false);
+            appendChat("拒绝重开", false, 1);
         }
     }
 }
