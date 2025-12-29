@@ -921,12 +921,6 @@ public class ChessBoard extends Canvas{
             return;
         }
 
-        if (!isNetworkGame) {
-            // 本地游戏直接悔棋
-            performUndo();
-            return;
-        }
-
         // 网络游戏发送请求
         if (networkManager != null) {
             GameMessage msg = new GameMessage(GameMessage.MessageType.UNDO_REQUEST);
