@@ -17,6 +17,7 @@ public class ChessBoard extends Canvas{
     private String selectedPosition = null;
     private int round = 1;                // 回合变化
     private BufferedImage boardImage;
+    private BufferedImage bufferImage;  // 双缓冲图像
     private boolean gameOver = false;     // 游戏是否结束
     private boolean eated = false;        // 是否吃子
     private boolean isReady = false;      // 游戏是否开始
@@ -50,10 +51,21 @@ public class ChessBoard extends Canvas{
     }
 
     // 显示刷新
+    @Override
     public void paint(Graphics g) {
-        super.paint(g);
+        // 如果缓冲图像不存在或尺寸不匹配，创建新的
+        if (bufferImage == null ||
+                bufferImage.getWidth() != getWidth() ||
+                bufferImage.getHeight() != getHeight()) {
+            bufferImage = new BufferedImage(
+                    Math.max(1, getWidth()),
+                    Math.max(1, getHeight()),
+                    BufferedImage.TYPE_INT_ARGB  // 支持透明度，更好的质量
+            );
+        }
 
-        Graphics2D g2 = (Graphics2D) g;
+        // 在缓冲图像上绘制
+        Graphics2D g2 = bufferImage.createGraphics();
 
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                 RenderingHints.VALUE_ANTIALIAS_ON);
@@ -63,7 +75,16 @@ public class ChessBoard extends Canvas{
                 RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL,
                 RenderingHints.VALUE_STROKE_PURE);
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g2.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION,
+                RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
 
+        // 清空背景
+        g2.setColor(getBackground());
+        g2.fillRect(0, 0, getWidth(), getHeight());
+
+        // 绘制内容
         g2.drawImage(boardImage, 0, 0, this);
         drawPieces(g2);
         drawText(g2);
@@ -76,6 +97,18 @@ public class ChessBoard extends Canvas{
             eated = false;
         }
 
+        g2.dispose();
+
+        Graphics2D screenG2 = (Graphics2D) g;
+        screenG2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        screenG2.drawImage(bufferImage, 0, 0, this);
+    }
+
+    // 消除闪烁
+    @Override
+    public void update(Graphics g) {
+        paint(g);  // 直接绘制，不清屏
     }
 
     private void drawBoard(Graphics2D g2) {
