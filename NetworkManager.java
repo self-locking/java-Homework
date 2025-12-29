@@ -10,15 +10,7 @@ public class NetworkManager {
     private ChessBoard board;
     private boolean isRunning = true;
 
-    // 客户端Socket构造
-    public NetworkManager(String serverIP, int port, ChessBoard board) throws IOException {
-        this.board = board;
-        this.socket = new Socket(serverIP, port);
-        setupStreams();
-        startListening();
-    }
-
-    // 服务端Socket构造
+    // 服务端和客户段Socket构造
     public NetworkManager(Socket socket, ChessBoard board) throws IOException {
         this.board = board;
         this.socket = socket;

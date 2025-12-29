@@ -811,25 +811,6 @@ public class ChessBoard extends Canvas{
         }
     }
 
-    // 检查是否双方都同意重新开始
-    private void checkRestartCondition() {
-        if (myRestartRequest && opponentRestartRequest) {
-            // 双方都同意,交换阵营并重新开始
-            int newSide = -mySide;  // 交换阵营
-
-            // 发送阵营交换信息给对方
-            if (isNetworkGame && networkManager != null) {
-                GameMessage msg = new GameMessage(GameMessage.MessageType.SIDE_ASSIGNMENT);
-                msg.setPlayerSide(-newSide);  // 对方得到相反的阵营
-                networkManager.sendMessage(msg);
-            }
-
-            // 本地重新开始
-            resetAndStart(newSide);
-            appendChat("游戏重新开始!阵营已交换", false, 1);
-        }
-    }
-
     // 设置游戏窗口引用
     public void setGameFrame(JFrame frame) {
         this.gameFrame = frame;

@@ -17,12 +17,12 @@ public class VoiceManager {
 
     private static final AudioFormat AUDIO_FORMAT = new AudioFormat(
             AudioFormat.Encoding.PCM_SIGNED,
-            16000.0F,  // Sample rate
-            16,        // Sample size in bits
-            1,         // Channels (mono)
-            2,         // Frame size
-            16000.0F,  // Frame rate
-            false      // Big endian
+            16000.0F,
+            16,
+            1,
+            2,
+            16000.0F,
+            false
     );
 
     public VoiceManager(Socket socket) throws IOException {
@@ -35,7 +35,6 @@ public class VoiceManager {
 
     private void initializeAudio() {
         try {
-            // Initialize microphone
             DataLine.Info micInfo = new DataLine.Info(TargetDataLine.class, AUDIO_FORMAT);
             if (!AudioSystem.isLineSupported(micInfo)) {
                 System.err.println("Microphone not supported");
@@ -44,7 +43,6 @@ public class VoiceManager {
             microphone = (TargetDataLine) AudioSystem.getLine(micInfo);
             microphone.open(AUDIO_FORMAT);
 
-            // Initialize speakers
             DataLine.Info speakerInfo = new DataLine.Info(SourceDataLine.class, AUDIO_FORMAT);
             if (!AudioSystem.isLineSupported(speakerInfo)) {
                 System.err.println("Speakers not supported");
@@ -59,7 +57,7 @@ public class VoiceManager {
         }
     }
 
-    // Start transmitting audio when button is pressed
+    // 按下按钮开始通信
     public void startTransmitting() {
         if (isTransmitting || microphone == null) return;
 
@@ -72,7 +70,6 @@ public class VoiceManager {
                 while (isTransmitting) {
                     int bytesRead = microphone.read(buffer, 0, buffer.length);
                     if (bytesRead > 0) {
-                        // Send audio data length first, then the data
                         audioOut.writeInt(bytesRead);
                         audioOut.write(buffer, 0, bytesRead);
                         audioOut.flush();
@@ -87,7 +84,7 @@ public class VoiceManager {
         transmitThread.start();
     }
 
-    // Stop transmitting audio when button is released
+    // 松开按钮结束通信
     public void stopTransmitting() {
         if (!isTransmitting) return;
 
@@ -105,7 +102,7 @@ public class VoiceManager {
         }
     }
 
-    // Continuously receive and play audio from the other player
+    // 语音通话
     private void startReceiving() {
         receiveThread = new Thread(() -> {
             byte[] buffer = new byte[1024];
@@ -138,7 +135,7 @@ public class VoiceManager {
         receiveThread.start();
     }
 
-    // Clean up resources
+    // 关闭通讯
     public void close() {
         isReceiving = false;
         stopTransmitting();
